@@ -32,6 +32,13 @@ class CommandRouter
             case '.daily':
                 return RewardService::daily($whatsappId);
 
+            case '.weekly':
+                return RewardService::weekly($whatsappId);
+                
+            case '.monthly':
+                return RewardService::monthly($whatsappId);
+                
+
             case '.rob':
                 $target = $parts[1] ?? '';
                 if (!$target) {
