@@ -10,6 +10,10 @@ require_once __DIR__ . '/services/ShopService.php';
 require_once __DIR__ . '/services/AdminService.php';
 require_once __DIR__ . '/services/RewardService.php';
 require_once __DIR__ . '/services/RobberyService.php';
+require_once __DIR__ . '/services/ProfileService.php';
+require_once __DIR__ . '/services/BegService.php';
+require_once __DIR__ . '/services/TransferService.php';
+require_once __DIR__ . '/services/LoanService.php';
 
 class CommandRouter
 {
@@ -33,6 +37,9 @@ class CommandRouter
             // User Management
             case '.register':
                 return self::register($whatsappId, $username);
+            
+            case '.profile':
+                return ProfileService::getProfile($whatsappId);
             
             case '.balance':
             case '.bal':
@@ -107,6 +114,35 @@ class CommandRouter
 
             case '.daily':
                 return ShopService::claimDaily($whatsappId);
+
+            case '.beg':
+                return BegService::beg($whatsappId);
+
+            case '.send':
+                $target = $parts[1] ?? '';
+                $amount = intval($parts[2] ?? 0);
+                if (!$target || !$amount) {
+                    return "Usage: .send <username> <amount>\nExample: .send john 1000";
+                }
+                return TransferService::send($whatsappId, $target, $amount);
+
+            case '.loan':
+                if (count($parts) < 2) {
+                    return LoanService::viewLoans($whatsappId);
+                }
+                $assetName = $parts[1] ?? '';
+                $amount = intval($parts[2] ?? 0);
+                if (!$amount) {
+                    return "Usage: .loan <asset_name> <amount>\nExample: .loan \"Small Kiosk\" 5000\n\nFirst use .loan to see options!";
+                }
+                return LoanService::takeLoan($whatsappId, $assetName, $amount);
+
+            case '.payloan':
+                $amount = intval($parts[1] ?? 0);
+                if (!$amount) {
+                    return "Usage: .payloan <amount>\nExample: .payloan 5500";
+                }
+                return LoanService::repayLoan($whatsappId, $amount);
 
             // Robbery
             case '.rob':
@@ -275,41 +311,43 @@ class CommandRouter
 
     private static function getMenu(): string
     {
-        $menu = "📱 GAMBLE BOT MENU 📱\n\n";
+        $menu = "╔══════════════════════╗\n";
+        $menu .= "     💎 RICK'S HUB 💎\n";
+        $menu .= "╚══════════════════════╝\n\n";
         
-        $menu .= "👤 ACCOUNT\n";
-        $menu .= ".register - Create account\n";
-        $menu .= ".balance - Check wallet/bank/net worth\n";
-        $menu .= ".menu - Show this menu\n\n";
+        $menu .= "👤 ACCOUNT & PROFILE\n";
+        $menu .= ".profile     → Show your full profile\n";
+        $menu .= ".bal         → Wallet & Bank balance\n";
+        $menu .= ".assets      → Your businesses\n";
+        $menu .= ".lb          → Leaderboard\n";
+        $menu .= ".menu        → Show this menu\n\n";
 
-        $menu .= "🎮 GAMES (Use wallet coins)\n";
-        $menu .= ".roulette red|black|gold <amount> - Pick a color & bet\n";
-        $menu .= ".slots <amount> - Play slots machine\n";
-        $menu .= ".cf h|t <amount> - Heads or Tails flip\n";
-        $menu .= ".casino <amount> - Classic betting game\n\n";
+        $menu .= "💰 INCOME & FINANCE\n";
+        $menu .= ".daily       → Claim daily reward\n";
+        $menu .= ".beg         → Beg for random money\n";
+        $menu .= ".send u x    → Send money to user\n";
+        $menu .= ".dep x       → Deposit to bank\n";
+        $menu .= ".wd x        → Withdraw from bank\n";
+        $menu .= ".loan        → Borrow against asset\n";
+        $menu .= ".payloan x   → Repay loan\n\n";
 
-        $menu .= "🏦 BANKING (Safe from robbery)\n";
-        $menu .= ".deposit <amount> - Move coins to bank\n";
-        $menu .= ".withdraw <amount> - Move coins from bank\n\n";
+        $menu .= "🎰 GAMBLING & CHANCE\n";
+        $menu .= ".casino x       → Play casino\n";
+        $menu .= ".slots x        → Spin slots\n";
+        $menu .= ".cf h/t x       → Coin flip\n";
+        $menu .= ".roulette c x   → Roulette\n\n";
 
-        $menu .= "🛍️ SHOP & ASSETS\n";
-        $menu .= ".shop - View available assets\n";
-        $menu .= ".buy <asset_id> - Buy income-generating asset\n";
-        $menu .= ".assets - View your assets\n";
-        $menu .= ".daily - Claim daily income from assets\n\n";
+        $menu .= "🏢 BUSINESS & SHOP\n";
+        $menu .= ".shop     → View businesses\n";
+        $menu .= ".buy id   → Buy a business\n";
+        $menu .= ".sell idx → Sell a business\n\n";
 
-        $menu .= "🔫 ROBBERY\n";
-        $menu .= ".rob <username> - Rob another player's wallet\n\n";
+        $menu .= "💣 ROBBERY\n";
+        $menu .= ".rob @user → Rob someone\n\n";
 
-        $menu .= "📊 OTHER\n";
-        $menu .= ".top - View leaderboard\n\n";
-
-        $menu .= "🔐 ADMIN (Reply-based)\n";
-        $menu .= "Reply with .ban - Ban a player\n";
-        $menu .= "Reply with .unban - Unban a player\n";
-        $menu .= "Reply with .addbal <amount> - Add balance\n";
-        $menu .= "Reply with .seize wallet|bank|assets - Seize assets\n";
-        $menu .= ".giveaway - Random 1000 to all players\n";
+        $menu .= "━━━━━━━━━━━━━━━━━━\n";
+        $menu .= "💼 Build • Gamble • Dominate\n";
+        $menu .= "━━━━━━━━━━━━━━━━━━";
 
         return $menu;
     }

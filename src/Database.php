@@ -95,12 +95,29 @@ class Database
             );
         ");
 
+        // Loans
+        $db->exec("
+            CREATE TABLE IF NOT EXISTS loans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                amount INTEGER,
+                interest_rate REAL DEFAULT 0.1,
+                asset_id INTEGER,
+                status TEXT DEFAULT 'active',
+                created_at TEXT,
+                due_at TEXT,
+                repaid_at TEXT,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (asset_id) REFERENCES assets(id)
+            );
+        ");
+
         // Insert default assets (shop items)
         try {
             $stmt = $db->prepare("SELECT COUNT(*) as count FROM assets");
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($result['count'] == 0) {
                 $assets = [
                     ['Small Kiosk', 1000, 2000, 'A small shop that generates income'],
