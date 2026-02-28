@@ -12,7 +12,7 @@ class RewardService
             $whatsappId,
             'daily',
             86400,   // 24 hours
-            300
+            5000
         );
     }
 
@@ -22,7 +22,7 @@ class RewardService
             $whatsappId,
             'weekly',
             604800, // 7 days
-            1200
+            10000
         );
     }
 
@@ -32,7 +32,7 @@ class RewardService
             $whatsappId,
             'monthly',
             2592000, // ~30 days
-            5000
+            100000
         );
     }
 

@@ -5,9 +5,9 @@ require_once __DIR__ . '/CommandRouter.php';
 
 class Bot
 {
-    public function handleMessage(string $message, string $whatsappId, string $username): string
+    public function handleMessage(string $message, string $whatsappId, string $username, ?array $repliedTo = null): string
     {
         Database::migrate();
-        return CommandRouter::handle($message, $whatsappId, $username);
+        return CommandRouter::handle($message, $whatsappId, $username, $repliedTo);
     }
 }

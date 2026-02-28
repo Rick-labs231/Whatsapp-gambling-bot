@@ -24,45 +24,61 @@ class RobberyService
             return "You can’t rob yourself.";
         }
 
-        if ($robber['balance'] < 200) {
-            return "You need at least 200 coins to attempt a robbery.";
+        if ($robber['wallet'] < 100) {
+            return "❌ You need at least 100 coins to attempt a robbery.";
+        }
+
+        if ($robber['banned']) {
+            return "⛔ You are banned from playing!";
         }
 
         // cooldown check
         $cooldownMsg = CooldownService::check(
             $robber['id'],
             'rob',
-            3600
+            600
         );
 
         if ($cooldownMsg) {
             return $cooldownMsg;
         }
 
+        // 30% success rate
         $success = random_int(1, 100) <= 30;
 
         try {
             $db->beginTransaction();
 
             if ($success) {
-                $maxSteal = (int) ($target['balance'] * 0.5);
-                $minSteal = max(1, (int) ($target['balance'] * 0.2));
-                $stolen = random_int($minSteal, max($minSteal, $maxSteal));
+                // Only rob from wallet, bank is safe!
+                $maxSteal = (int) ($target['wallet'] * 0.5);
+                $minSteal = max(1, (int) ($target['wallet'] * 0.2));
+                
+                if ($maxSteal <= 0) {
+                    $message = "🚨 Robbery failed! Target has no coins in wallet.";
+                } else {
+                    $stolen = random_int($minSteal, max($minSteal, $maxSteal));
 
-                $db->prepare("UPDATE users SET balance = balance - ? WHERE id = ?")
-                   ->execute([$stolen, $target['id']]);
+                    User::removeWallet($target['id'], $stolen);
+                    User::addWallet($robber['id'], $stolen);
 
-                $db->prepare("UPDATE users SET balance = balance + ? WHERE id = ?")
-                   ->execute([$stolen, $robber['id']]);
-
-                $message = "Robbery successful! You stole {$stolen} coins from {$target['username']}.";
+                    $newWallet = $robber['wallet'] + $stolen;
+                    $message = "💰 ROBBERY SUCCESSFUL!\n\n";
+                    $message .= "You stole {$stolen} coins from {$target['username']}!\n";
+                    $message .= "Your new wallet: {$newWallet} coins";
+                }
             } else {
-                $penalty = 150;
+                // Failed robbery - lose money as failed attempt cost
+                $maxPen = (int) ($robber['wallet'] * 0.65);
+                $minPen = max(1, (int) ($robber['wallet'] * 0.35));
+                $penalty = random_int($minPen, max($minPen, $maxPen));
 
-                $db->prepare("UPDATE users SET balance = balance - ? WHERE id = ?")
-                   ->execute([$penalty, $robber['id']]);
+                User::removeWallet($robber['id'], $penalty);
 
-                $message = "Robbery failed! You lost {$penalty} coins.";
+                $newWallet = $robber['wallet'] - $penalty;
+                $message = "🚨 ROBBERY FAILED!\n\n";
+                $message .= "You lost {$penalty} coins in the attempt.\n";
+                $message .= "Your new wallet: {$newWallet} coins";
             }
 
             CooldownService::set($robber['id'], 'rob');
@@ -72,7 +88,7 @@ class RobberyService
 
         } catch (Exception $e) {
             $db->rollBack();
-            return "Robbery failed due to system error.";
+            return "❌ Robbery failed due to system error: " . $e->getMessage();
         }
     }
 }
