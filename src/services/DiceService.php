@@ -73,8 +73,8 @@ class DiceService
 
         // Fetch challenge
         $stmt = $db->prepare("SELECT * FROM dice_challenges WHERE id = ? AND challenged_id = ? AND status = 'pending'");
-        $result = $stmt->execute([$challengeId, $player['id']]);
-        $challenge = $result->fetchArray(SQLITE3_ASSOC);
+        $stmt->execute([$challengeId, $player['id']]);
+        $challenge = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$challenge) {
             return "❌ Challenge not found or already processed.";
@@ -82,13 +82,15 @@ class DiceService
 
         // Check if challenge expired
         if (strtotime($challenge['expires_at']) < time()) {
-            $db->exec("UPDATE dice_challenges SET status = 'expired' WHERE id = {$challengeId}");
+            $stmt = $db->prepare("UPDATE dice_challenges SET status = 'expired' WHERE id = ?");
+            $stmt->execute([$challengeId]);
             return "❌ Challenge has expired.";
         }
 
         // Check if players still have enough coins
         if ($challenger['wallet'] < $challenge['amount'] || $player['wallet'] < $challenge['amount']) {
-            $db->exec("UPDATE dice_challenges SET status = 'cancelled' WHERE id = {$challengeId}");
+            $stmt = $db->prepare("UPDATE dice_challenges SET status = 'cancelled' WHERE id = ?");
+            $stmt->execute([$challengeId]);
             return "❌ One or both players don't have enough coins anymore.";
         }
 
@@ -134,7 +136,8 @@ class DiceService
         }
 
         // Update challenge status
-        $db->exec("UPDATE dice_challenges SET status = '{$status}', challenger_roll = {$challengerRoll}, challenged_roll = {$playerRoll} WHERE id = {$challengeId}");
+        $stmt = $db->prepare("UPDATE dice_challenges SET status = ?, challenger_roll = ?, challenged_roll = ? WHERE id = ?");
+        $stmt->execute([$status, $challengerRoll, $playerRoll, $challengeId]);
 
         return $display;
     }
@@ -153,15 +156,16 @@ class DiceService
 
         // Fetch challenge
         $stmt = $db->prepare("SELECT * FROM dice_challenges WHERE id = ? AND challenged_id = ? AND status = 'pending'");
-        $result = $stmt->execute([$challengeId, $player['id']]);
-        $challenge = $result->fetchArray(SQLITE3_ASSOC);
+        $stmt->execute([$challengeId, $player['id']]);
+        $challenge = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$challenge) {
             return "❌ Challenge not found or already processed.";
         }
 
         // Update status
-        $db->exec("UPDATE dice_challenges SET status = 'declined' WHERE id = {$challengeId}");
+        $stmt = $db->prepare("UPDATE dice_challenges SET status = 'declined' WHERE id = ?");
+        $stmt->execute([$challengeId]);
 
         return "❌ You declined the dice challenge.";
     }
