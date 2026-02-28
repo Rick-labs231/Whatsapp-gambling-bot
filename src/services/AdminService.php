@@ -10,18 +10,24 @@ require_once __DIR__ . '/../models/User.php';
 class AdminService
 {
     // Set this to your WhatsApp ID
-    private static $ADMIN_ID = '2348154411519@s.whatsapp.net'; // Admin WhatsApp number
+    private static $ADMIN_ID = '120363423877801019@g.us'; // Admin WhatsApp group ID
 
     public static function isAdmin(string $whatsappId): bool
     {
-        // Normalize the WhatsApp ID - remove @s.whatsapp.net and any + prefix
-        $normalizedId = trim(str_replace('@s.whatsapp.net', '', $whatsappId), '+');
-        $normalizedAdminId = trim(str_replace('@s.whatsapp.net', '', self::$ADMIN_ID), '+');
+        // Normalize the WhatsApp ID - remove domain parts (@s.whatsapp.net or @g.us)
+        $normalizedId = preg_replace('/@.*/', '', $whatsappId);
+        $normalizedAdminId = preg_replace('/@.*/', '', self::$ADMIN_ID);
+        
+        // Also trim + prefix if present
+        $normalizedId = trim($normalizedId, '+');
+        $normalizedAdminId = trim($normalizedAdminId, '+');
+        
+        $isMatch = $normalizedId === $normalizedAdminId;
         
         // Debug logging
-        error_log("DEBUG: Checking admin - ID: '{$normalizedId}', Admin: '{$normalizedAdminId}', Match: " . ($normalizedId === $normalizedAdminId ? 'YES' : 'NO'));
+        error_log("DEBUG: Admin check - Input: '{$whatsappId}', Normalized: '{$normalizedId}', Admin: '{$normalizedAdminId}', Match: " . ($isMatch ? 'YES' : 'NO'));
         
-        return $normalizedId === $normalizedAdminId;
+        return $isMatch;
     }
 
     public static function setAdmin(string $whatsappId): void
