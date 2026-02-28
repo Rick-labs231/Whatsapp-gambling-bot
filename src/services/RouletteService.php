@@ -74,21 +74,22 @@ class RouletteService
             } else {
                 $multiplier = 2;
                 $winAmount = $amount * $multiplier;
-                $betColor = ucfirst($playerBet);
-                $display .= "{$wheelEmoji} THE BALL LANDED ON {$betColor.strtoupper()}! {$wheelEmoji}\n\n";
+                $betColor = strtoupper($playerBet);
+                $display .= "{$wheelEmoji} THE BALL LANDED ON {$betColor}! {$wheelEmoji}\n\n";
                 $display .= "🎉 WINNER! 🎉\n";
-                $display .= "You betted on {$betColor} and WON {$multiplier}x!\n\n";
+                $display .= "You betted on {$playerBet} and WON {$multiplier}x!\n\n";
             }
             User::addWallet($user['id'], $winAmount);
         } else {
-            $betColor = ucfirst($playerBet);
-            $display .= "{$wheelEmoji} THE BALL LANDED ON " . strtoupper($wheelResult) . "! {$wheelEmoji}\n\n";
+            $betColor = strtoupper($playerBet);
+            $resultUpper = strtoupper($wheelResult);
+            $display .= "{$wheelEmoji} THE BALL LANDED ON {$resultUpper}! {$wheelEmoji}\n\n";
             $display .= "❌ YOU LOST!\n";
-            $display .= "You betted on {$betColor} but lost -{$amount} coins.\n\n";
+            $display .= "You betted on {$playerBet} but lost -{$amount} coins.\n\n";
             $winAmount = 0;
         }
 
-        $finalBalance = $user['wallet'] - $amount + $winAmount;
+        $finalBalance = User::findByWhatsappId($whatsappId)['wallet'];
         $display .= "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
         $display .= "💰 New Wallet Balance: {$finalBalance} coins\n";
         $display .= "━━━━━━━━━━━━━━━━━━━━━━━━━━━━";

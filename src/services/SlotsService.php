@@ -75,7 +75,7 @@ class SlotsService
             $display .= "You lost -{$amount} coins!\n";
         }
 
-        $newWallet = $user['wallet'] - $amount + $winAmount;
+        $newWallet = User::findByWhatsappId($whatsappId)['wallet'];
         $display .= "\n━━━━━━━━━━━━━━━━━━━━━\n";
         $display .= "💰 New Balance: {$newWallet} coins\n";
         $display .= "━━━━━━━━━━━━━━━━━━━━━";

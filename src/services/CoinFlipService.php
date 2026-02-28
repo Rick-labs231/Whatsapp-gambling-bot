@@ -69,7 +69,7 @@ class CoinFlipService
             $winAmount = 0;
         }
 
-        $finalBalance = $user['wallet'] - $amount + $winAmount;
+        $finalBalance = User::findByWhatsappId($whatsappId)['wallet'];
         $display .= "━━━━━━━━━━━━━━━━━━━━━◆━━━━━━━━━━━━━━━━━━━━━\n";
         $display .= "💰 New Wallet Balance: {$finalBalance} coins\n";
         $display .= "━━━━━━━━━━━━━━━━━━━━━◆━━━━━━━━━━━━━━━━━━━━━";

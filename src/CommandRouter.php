@@ -5,7 +5,6 @@ require_once __DIR__ . '/services/GamblingService.php';
 require_once __DIR__ . '/services/RouletteService.php';
 require_once __DIR__ . '/services/SlotsService.php';
 require_once __DIR__ . '/services/CoinFlipService.php';
-require_once __DIR__ . '/services/DiceService.php';
 require_once __DIR__ . '/services/BankingService.php';
 require_once __DIR__ . '/services/ShopService.php';
 require_once __DIR__ . '/services/AdminService.php';
@@ -72,17 +71,9 @@ class CommandRouter
                 }
                 return CoinFlipService::play($whatsappId, $choice, $amount);
 
-            case '.dice':
-                // Dice is reply-only command
-                if (!self::$repliedToUser) {
-                    return "❌ Dice challenges must be sent as a reply to a player!\nReply to a user with: .dice <amount>";
-                }
-                $amount = intval($parts[1] ?? 0);
-                if (!$amount) {
-                    return "Usage: Reply to a user with: .dice <amount>\nExample: .dice 200";
-                }
-                $challengedJid = self::$repliedToUser['jid'];
-                return DiceService::challenge($whatsappId, $challengedJid, $amount);
+            // Dice feature disabled - pending full integration
+            // case '.dice':
+            //     Coming soon!
 
             case '.casino':
                 $amount = intval($parts[1] ?? 0);
@@ -291,8 +282,7 @@ class CommandRouter
         $menu .= ".roulette red|black|gold <amount> - Pick a color & bet\n";
         $menu .= ".slots <amount> - Play slots machine\n";
         $menu .= ".cf h|t <amount> - Heads or Tails flip\n";
-        $menu .= ".casino <amount> - Classic betting game\n";
-        $menu .= ".dice <amount> (REPLY) - Challenge someone!\n\n";
+        $menu .= ".casino <amount> - Classic betting game\n\n";
 
         $menu .= "🏦 BANKING (Safe from robbery)\n";
         $menu .= ".deposit <amount> - Move coins to bank\n";
