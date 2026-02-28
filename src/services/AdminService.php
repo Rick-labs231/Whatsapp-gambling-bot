@@ -14,9 +14,12 @@ class AdminService
 
     public static function isAdmin(string $whatsappId): bool
     {
-        // Normalize the WhatsApp ID
-        $normalizedId = str_replace('@s.whatsapp.net', '', $whatsappId);
-        $normalizedAdminId = str_replace('@s.whatsapp.net', '', self::$ADMIN_ID);
+        // Normalize the WhatsApp ID - remove @s.whatsapp.net and any + prefix
+        $normalizedId = trim(str_replace('@s.whatsapp.net', '', $whatsappId), '+');
+        $normalizedAdminId = trim(str_replace('@s.whatsapp.net', '', self::$ADMIN_ID), '+');
+        
+        // Debug logging
+        error_log("DEBUG: Checking admin - ID: '{$normalizedId}', Admin: '{$normalizedAdminId}', Match: " . ($normalizedId === $normalizedAdminId ? 'YES' : 'NO'));
         
         return $normalizedId === $normalizedAdminId;
     }

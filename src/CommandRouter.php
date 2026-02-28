@@ -228,6 +228,10 @@ class CommandRouter
                 }
                 return AdminService::giveaway();
 
+            case '.whoami':
+                $isAdminStr = AdminService::isAdmin($whatsappId) ? '✅ YES - You are an admin!' : '❌ NO - You are not an admin';
+                return "👤 Your WhatsApp ID: {$whatsappId}\n\nAdmin Status: {$isAdminStr}";
+
             default:
                 return "❓ Unknown command. Use .menu for available commands.";
         }
